@@ -1,6 +1,7 @@
 @props([
     'header' => 'Dashboard',
     'breadcrumbs' => null,
+    'pageHint' => null,
 ])
 
 @php
@@ -14,6 +15,15 @@
             ? mb_substr($parts[0], 0, 1).mb_substr($parts[count($parts) - 1], 0, 1)
             : (mb_substr($parts[0] ?? 'A', 0, 2) ?: 'A'),
     );
+    $adminDd = fn (bool $active): string => $active ? 'admin-dropdown-item admin-dropdown-item--active' : 'admin-dropdown-item';
+    $isMainDashboard = request()->routeIs('admin.dashboard');
+    $isSocCms = request()->routeIs('admin.soc.*') && ! request()->routeIs('admin.soc.media.*');
+    $isSocMedia = request()->routeIs('admin.soc.media.*');
+    $isNewDownload = request()->routeIs('admin.downloads.create');
+    $boundDownload = request()->route('download');
+    $isCohsDownloads = request()->routeIs('admin.downloads.*')
+        && (request()->query('school') === 'cohs'
+            || ($boundDownload instanceof \App\Models\Download && $boundDownload->school?->slug === 'cohs'));
 @endphp
 
 <header
@@ -47,22 +57,28 @@
                     @endforeach
                 </ol>
             </nav>
-            <h1 class="mt-0.5 truncate text-base font-semibold text-thc-navy sm:text-lg">{{ $header }}</h1>
-        @else
-            <h1 class="truncate text-base font-semibold text-thc-navy sm:text-lg">{{ $header }}</h1>
         @endif
+        <div @class([
+            'flex min-w-0 items-center gap-2',
+            'mt-0.5' => is_array($breadcrumbs) && count($breadcrumbs) > 0,
+        ])>
+            <h1 class="min-w-0 truncate text-base font-semibold text-thc-navy sm:text-lg">{{ $header }}</h1>
+            @if (filled($pageHint))
+                <x-admin.page-hint :text="$pageHint" />
+            @endif
+        </div>
     </div>
 
-    <form action="{{ route('search') }}" method="get" class="hidden max-w-[14rem] flex-1 items-center gap-2 rounded-xl border border-thc-navy/12 bg-white/90 px-2 py-1.5 shadow-sm sm:flex lg:max-w-xs" role="search">
+    <form action="{{ route('admin.search') }}" method="get" class="hidden max-w-[14rem] flex-1 items-center gap-2 rounded-xl border border-thc-navy/12 bg-white/90 px-2 py-1.5 shadow-sm sm:flex lg:max-w-xs" role="search">
         <x-admin.nav-icon name="magnifying-glass" class="h-4 w-4 text-thc-text/45" />
         <input
             type="search"
             name="q"
-            value="{{ request('q') }}"
-            placeholder="Search site…"
+            value="{{ request()->routeIs('admin.search') ? request('q') : '' }}"
+            placeholder="{{ __('Search admin…') }}"
             class="min-w-0 flex-1 border-0 bg-transparent text-sm text-thc-navy placeholder:text-thc-text/40 focus:ring-0"
             autocomplete="off"
-            aria-label="Search website"
+            aria-label="{{ __('Search admin') }}"
         />
         <kbd class="hidden rounded border border-thc-navy/15 bg-thc-navy/[0.03] px-1.5 py-0.5 text-[10px] font-medium text-thc-text/50 lg:inline">/</kbd>
     </form>
@@ -100,15 +116,15 @@
                 class="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-xl border border-thc-navy/10 bg-white py-1 shadow-lg ring-1 ring-black/5"
                 role="menu"
             >
-                <a href="{{ route('admin.dashboard') }}" class="admin-dropdown-item" role="menuitem" @click="open = false">Main dashboard</a>
+                <a href="{{ route('admin.dashboard') }}" class="{{ $adminDd($isMainDashboard) }}" role="menuitem" @click="open = false" @if($isMainDashboard) aria-current="page" @endif>Main dashboard</a>
                 @if ($managesSoc)
-                    <a href="{{ route('admin.soc.dashboard') }}" class="admin-dropdown-item" role="menuitem" @click="open = false">SOC dashboard</a>
+                    <a href="{{ route('admin.soc.dashboard') }}" class="{{ $adminDd($isSocCms) }}" role="menuitem" @click="open = false" @if($isSocCms) aria-current="page" @endif>SOC dashboard</a>
                 @endif
                 @can('create', App\Models\Download::class)
-                    <a href="{{ route('admin.downloads.create') }}" class="admin-dropdown-item" role="menuitem" @click="open = false">New download</a>
+                    <a href="{{ route('admin.downloads.create') }}" class="{{ $adminDd($isNewDownload) }}" role="menuitem" @click="open = false" @if($isNewDownload) aria-current="page" @endif>New download</a>
                 @endcan
                 @if ($cohs && ($user->hasRole('super_admin') || $user->hasRole('cohs_admin')))
-                    <a href="{{ route('admin.downloads.index', ['school' => 'cohs']) }}" class="admin-dropdown-item" role="menuitem" @click="open = false">COHS downloads</a>
+                    <a href="{{ route('admin.downloads.index', ['school' => 'cohs']) }}" class="{{ $adminDd($isCohsDownloads) }}" role="menuitem" @click="open = false" @if($isCohsDownloads) aria-current="page" @endif>COHS downloads</a>
                 @endif
             </div>
         </div>
@@ -139,14 +155,14 @@
                     Signed in as<br />
                     <span class="font-semibold text-thc-navy">{{ $user->email }}</span>
                 </p>
-                <a href="{{ route('home') }}" class="admin-dropdown-item" role="menuitem" @click="profileOpen = false">Website preview</a>
+                <a href="{{ route('home') }}" class="{{ $adminDd(request()->routeIs('home')) }}" role="menuitem" @click="profileOpen = false" @if(request()->routeIs('home')) aria-current="page" @endif>Website preview</a>
                 @if ($managesSoc)
-                    <a href="{{ route('admin.soc.dashboard') }}" class="admin-dropdown-item" role="menuitem" @click="profileOpen = false">Manage SOC</a>
-                    <a href="{{ route('admin.soc.media.index') }}" class="admin-dropdown-item" role="menuitem" @click="profileOpen = false">Media library</a>
+                    <a href="{{ route('admin.soc.dashboard') }}" class="{{ $adminDd($isSocCms) }}" role="menuitem" @click="profileOpen = false" @if($isSocCms) aria-current="page" @endif>Manage SOC</a>
+                    <a href="{{ route('admin.soc.media.index') }}" class="{{ $adminDd($isSocMedia) }}" role="menuitem" @click="profileOpen = false" @if($isSocMedia) aria-current="page" @endif>Media library</a>
                 @endif
                 @if ($cohs && ($user->hasRole('super_admin') || $user->hasRole('cohs_admin')))
-                    <a href="{{ route('admin.downloads.index', ['school' => 'cohs']) }}" class="admin-dropdown-item" role="menuitem" @click="profileOpen = false">Manage COHS downloads</a>
-                    <a href="{{ route('schools.show', $cohs) }}" class="admin-dropdown-item" role="menuitem" rel="noopener" target="_blank" @click="profileOpen = false">Preview COHS site</a>
+                    <a href="{{ route('admin.downloads.index', ['school' => 'cohs']) }}" class="{{ $adminDd($isCohsDownloads) }}" role="menuitem" @click="profileOpen = false" @if($isCohsDownloads) aria-current="page" @endif>Manage COHS downloads</a>
+                    <a href="{{ route('schools.show', $cohs) }}" class="{{ $adminDd(request()->routeIs('schools.show') && request()->route('school')?->is($cohs)) }}" role="menuitem" rel="noopener" target="_blank" @click="profileOpen = false" @if(request()->routeIs('schools.show') && request()->route('school')?->is($cohs)) aria-current="page" @endif>Preview COHS site</a>
                 @endif
                 <span class="admin-dropdown-item cursor-not-allowed opacity-50" role="menuitem" title="Coming soon">My account</span>
                 <span class="admin-dropdown-item cursor-not-allowed opacity-50" role="menuitem" title="Coming soon">Settings</span>

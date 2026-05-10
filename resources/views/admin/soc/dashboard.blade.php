@@ -1,7 +1,7 @@
 <x-layouts.admin header="School of Chaplaincy — CMS" title="SOC CMS | {{ config('tenwek.name') }}">
     <div class="admin-page-wide">
         <p class="text-sm leading-relaxed text-thc-text/85">
-            Manage the public <a href="{{ route('schools.show', $soc) }}" class="admin-link">/soc</a> experience. Structured forms update live content; JSON modules are for advanced blocks (fees, FAQs, programmes list, etc.).
+            Manage the public <a href="{{ route('schools.show', $soc) }}" class="admin-link">/soc</a> experience. Structured forms update live content; JSON modules are for advanced blocks (fees, programmes list, etc.). Use <a href="{{ route('admin.soc.faqs.index') }}" class="admin-link">FAQs</a> for <span class="admin-code">/soc/faqs</span>.
         </p>
 
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -22,6 +22,11 @@
             <a href="{{ route('admin.soc.motto.edit') }}" class="admin-dash-tile">
                 <p class="admin-dash-tile-kicker">Landing</p>
                 <p class="admin-dash-tile-title">Motto</p>
+            </a>
+            <a href="{{ route('admin.soc.faqs.index') }}" class="admin-dash-tile">
+                <p class="admin-dash-tile-kicker">Page</p>
+                <p class="admin-dash-tile-title">FAQs</p>
+                <p class="admin-dash-tile-desc">CRUD accordions &amp; page intro</p>
             </a>
             <a href="{{ route('admin.soc.contact.edit') }}" class="admin-dash-tile">
                 <p class="admin-dash-tile-kicker">Landing</p>
@@ -50,7 +55,7 @@
             <a href="{{ route('admin.soc.team.index') }}" class="admin-dash-tile">
                 <p class="admin-dash-tile-kicker">People</p>
                 <p class="admin-dash-tile-title">Board &amp; management</p>
-                <p class="admin-dash-tile-desc">Overrides config cards when set</p>
+                <p class="admin-dash-tile-desc">{{ number_format($stats['team']) }} people · edit a row to upload a portrait</p>
             </a>
             <a href="{{ route('admin.soc.media.index') }}" class="admin-dash-tile">
                 <p class="admin-dash-tile-kicker">Media</p>
@@ -81,9 +86,9 @@
 
         <div class="admin-card p-6">
             <p class="text-sm font-semibold text-thc-navy">Advanced JSON sections</p>
-            <p class="mt-1 text-sm text-thc-text/80">Merge overrides with <span class="admin-code">config/tenwek.php</span> defaults. Use valid JSON objects.</p>
+            <p class="mt-1 text-sm text-thc-text/80">Merge overrides with <span class="admin-code">config/tenwek.php</span> defaults. Use valid JSON objects. FAQ accordions are managed in <a href="{{ route('admin.soc.faqs.index') }}" class="admin-link">FAQs</a>; raw <span class="admin-code">faqs</span> JSON (kicker/intro only after import) is at <a href="{{ route('admin.soc.json.edit', 'faqs') }}" class="admin-link">sections/faqs/json</a>.</p>
             <ul class="mt-4 flex flex-wrap gap-2 text-sm">
-                @foreach (['our_history', 'message_from_principal', 'strategic_partners', 'academic_programmes', 'fee', 'gallery', 'faqs', 'admissions', 'board_and_management', 'testimonials'] as $key)
+                @foreach (['our_history', 'message_from_principal', 'strategic_partners', 'academic_programmes', 'fee', 'gallery', 'admissions', 'board_and_management', 'testimonials'] as $key)
                     <li>
                         <a href="{{ route('admin.soc.json.edit', $key) }}" class="inline-flex rounded-full border border-thc-navy/12 bg-thc-navy/[0.03] px-3 py-1.5 font-medium text-thc-navy transition hover:border-thc-royal/35 hover:bg-thc-royal/5">{{ str_replace('_', ' ', $key) }}</a>
                     </li>

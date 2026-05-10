@@ -120,7 +120,13 @@ class TenwekFoundationSeeder extends Seeder
         }
 
         $pages = [
-            ['slug' => 'about', 'title' => 'About the institution', 'excerpt' => 'Tenwek Hospital College is the academic ministry of Tenwek Hospital, equipping chaplains, nurses, and clinical leaders for service across Africa.'],
+            [
+                'slug' => 'about',
+                'title' => 'About Tenwek Hospital College',
+                'excerpt' => 'The School of Chaplaincy and the College of Health Sciences form one college beside Tenwek Hospital, shaping spiritual caregivers and clinical leaders for Kenya and beyond.',
+                'template' => 'about-institution',
+                'body' => '',
+            ],
             ['slug' => 'admissions', 'title' => 'Admissions', 'excerpt' => 'Start your journey with transparent requirements, key dates, and downloadable application materials.'],
             ['slug' => 'academics', 'title' => 'Academics', 'excerpt' => 'Rigorous curricula blending classroom excellence with bedside learning at a Level 5 teaching hospital.'],
             ['slug' => 'programs', 'title' => 'Programmes', 'excerpt' => 'Explore nursing, perfusion, critical care, community health nursing, chaplaincy, and continuing professional development pathways.'],
@@ -139,7 +145,10 @@ class TenwekFoundationSeeder extends Seeder
                 [
                     'title' => $p['title'],
                     'excerpt' => $p['excerpt'],
-                    'body' => '<p>This page is part of the new Tenwek Hospital College platform. Editorial teams can expand this content in the forthcoming CMS module while preserving the full legacy sitemap.</p>',
+                    'template' => $p['template'] ?? 'default',
+                    'body' => array_key_exists('body', $p)
+                        ? $p['body']
+                        : '<p>This page is part of the new Tenwek Hospital College platform. Editorial teams can expand this content in the forthcoming CMS module while preserving the full legacy sitemap.</p>',
                     'published_at' => now(),
                     'seo_title' => $p['title'].' | '.config('tenwek.name'),
                     'seo_description' => $p['excerpt'],

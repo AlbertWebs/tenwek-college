@@ -7,7 +7,9 @@ use App\Models\SiteAdminSetting;
 use App\Models\User;
 use Database\Seeders\TenwekFoundationSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class AdminPanelTest extends TestCase
@@ -20,6 +22,23 @@ class AdminPanelTest extends TestCase
             ->assertRedirect(route('login'));
     }
 
+    public function test_guest_is_redirected_from_admin_search(): void
+    {
+        $this->get(route('admin.search'))
+            ->assertRedirect(route('login'));
+    }
+
+    public function test_admin_search_is_scoped_and_shows_download_hits(): void
+    {
+        $this->seed(TenwekFoundationSeeder::class);
+        $user = User::query()->where('email', 'admin@tenwekhospitalcollege.ac.ke')->firstOrFail();
+
+        $this->actingAs($user)
+            ->get(route('admin.search', ['q' => 'application']))
+            ->assertOk()
+            ->assertSee(__('Downloads'), false);
+    }
+
     public function test_super_admin_dashboard_contains_shell_and_navigation(): void
     {
         $this->seed(TenwekFoundationSeeder::class);
@@ -30,7 +49,7 @@ class AdminPanelTest extends TestCase
             ->assertOk()
             ->assertSee('SOC CMS')
             ->assertSee('Users & roles')
-            ->assertSee(route('search'), false);
+            ->assertSee(route('admin.search'), false);
     }
 
     public function test_soc_admin_sees_soc_cms_and_not_cohs_management_group(): void
@@ -55,6 +74,17 @@ class AdminPanelTest extends TestCase
             ->assertOk()
             ->assertSee('COHS downloads', false)
             ->assertDontSee('SOC CMS', false);
+    }
+
+    public function test_cohs_cms_topbar_shows_page_management_tooltip(): void
+    {
+        $this->seed(TenwekFoundationSeeder::class);
+        $user = User::query()->where('email', 'cohs.admin@tenwekhospitalcollege.ac.ke')->firstOrFail();
+
+        $this->actingAs($user)
+            ->get(route('admin.cohs.dashboard'))
+            ->assertOk()
+            ->assertSee(__('What this page manages'), false);
     }
 
     public function test_authenticated_admin_downloads_index_returns_ok(): void
@@ -175,5 +205,29 @@ class AdminPanelTest extends TestCase
             'Institution-wide test description for SEO.',
             SiteAdminSetting::query()->first()?->global_seo['default_meta_description']
         );
+    }
+
+    public function test_super_admin_can_upload_global_og_image(): void
+    {
+        $this->seed(TenwekFoundationSeeder::class);
+        Storage::fake('public');
+        $user = User::query()->where('email', 'admin@tenwekhospitalcollege.ac.ke')->firstOrFail();
+
+        $file = UploadedFile::fake()->image('og-default.png', 1200, 630);
+
+        $this->actingAs($user)
+            ->post(route('admin.global-seo.update'), [
+                '_method' => 'PUT',
+                'default_meta_description' => '',
+                'default_keywords' => '',
+                'default_og_image' => '',
+                'default_robots' => '',
+                'og_image_upload' => $file,
+            ])
+            ->assertRedirect(route('admin.global-seo.edit'));
+
+        $stored = SiteAdminSetting::query()->first()?->global_seo['default_og_image'] ?? '';
+        $this->assertStringStartsWith('storage/global-seo/', $stored);
+        Storage::disk('public')->assertExists(Str::after($stored, 'storage/'));
     }
 }

@@ -1,6 +1,6 @@
 @php $post = new \App\Models\NewsPost; @endphp
 <x-layouts.admin header="New news post">
-    <form method="post" action="{{ route('admin.soc.news.store') }}" class="admin-page-narrow">
+    <form method="post" action="{{ route('admin.soc.news.store') }}" class="admin-page-narrow" enctype="multipart/form-data">
         <div class="admin-card p-6 sm:p-8">
             @csrf
             <div class="admin-form-stack">

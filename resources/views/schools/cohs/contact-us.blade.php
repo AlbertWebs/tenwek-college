@@ -17,7 +17,7 @@
             <div class="absolute inset-0 bg-gradient-to-r from-white via-white/95 to-transparent"></div>
         </div>
         <div class="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
-            <nav class="mb-8 text-sm text-thc-text/65" aria-label="Breadcrumb" data-reveal>
+            <nav class="mb-10 text-sm text-thc-text/65 sm:mb-12" aria-label="Breadcrumb" data-reveal>
                 <ol class="flex flex-wrap gap-2">
                     <li><a href="{{ route('home') }}" class="hover:text-thc-royal">Home</a></li>
                     <li aria-hidden="true">/</li>
@@ -42,7 +42,7 @@
         </div>
     </div>
 
-    <div class="relative mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8 lg:pb-24">
+    <div class="relative mx-auto max-w-7xl px-4 pt-12 pb-16 sm:px-6 sm:pt-14 lg:px-8 lg:pt-16 lg:pb-24">
         <div class="mx-auto grid max-w-6xl gap-12 lg:grid-cols-12 lg:gap-x-16 lg:gap-y-14">
             <div class="lg:col-span-5" data-reveal>
                 <div class="cohs-contact-prose rounded-3xl border border-thc-navy/[0.08] bg-gradient-to-br from-white via-white to-thc-royal/[0.03] p-8 shadow-[0_20px_60px_-24px_rgb(0_33_71/0.18)] ring-1 ring-thc-navy/[0.04] sm:p-10">

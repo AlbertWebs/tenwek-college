@@ -16,7 +16,7 @@ class ContactController extends Controller
     {
         $seo = SeoPresenter::build($request, [
             'title' => 'Contact | '.config('tenwek.name'),
-            'description' => 'Reach Tenwek Hospital College for admissions enquiries, clinical training coordination, and institutional partnerships.',
+            'description' => 'Directory for Tenwek Hospital College (School of Chaplaincy and College of Health Sciences), Tenwek Hospital, and the Cardiothoracic Centre—plus a message form for general enquiries.',
             'canonical' => route('contact.show'),
             'schema' => [[
                 '@context' => 'https://schema.org',

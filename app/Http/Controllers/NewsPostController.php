@@ -39,7 +39,7 @@ class NewsPostController extends Controller
             $post->excerpt ?? strip_tags((string) $post->body),
             route('news.show', $post),
             $post->published_at->toIso8601String(),
-            $post->featured_image_path ? asset($post->featured_image_path) : null,
+            $post->featuredImagePublicUrl(),
         );
 
         $seo = SeoPresenter::build($request, [

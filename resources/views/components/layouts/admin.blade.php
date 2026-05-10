@@ -28,7 +28,7 @@
         <x-admin.sidebar :admin-nav-groups="$adminNavGroups ?? []" />
 
         <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden lg:min-w-0">
-            <x-admin.topbar :header="$header" :breadcrumbs="$breadcrumbs" />
+            <x-admin.topbar :header="$header" :breadcrumbs="$breadcrumbs" :page-hint="$cohsPageHint ?? null" />
             <main class="admin-main min-h-0 flex-1 overflow-y-auto overscroll-y-contain p-4 sm:p-6 lg:p-8">
                 @if (session('status'))
                     <div class="admin-alert-success mb-6">{{ session('status') }}</div>
@@ -46,5 +46,6 @@
             </main>
         </div>
     </div>
+    @stack('scripts')
 </body>
 </html>

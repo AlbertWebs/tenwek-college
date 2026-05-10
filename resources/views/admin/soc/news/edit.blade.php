@@ -1,5 +1,5 @@
 <x-layouts.admin header="Edit news post">
-    <form method="post" action="{{ route('admin.soc.news.update', $news) }}" class="admin-page-narrow">
+    <form method="post" action="{{ route('admin.soc.news.update', $news) }}" class="admin-page-narrow" enctype="multipart/form-data">
         <div class="admin-card p-6 sm:p-8">
             @csrf
             @method('PUT')

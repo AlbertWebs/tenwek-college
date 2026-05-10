@@ -27,6 +27,25 @@ return [
         'name' => 'Tenwek Cardiothoracic Centre',
         'url' => 'https://ctc.tenwek.designekta.com/',
     ],
+
+    /**
+     * Public /contact page: copy for hospital & CTC directory cards.
+     * College and school details are pulled from soc_landing.contact, cohs_landing.contact_page, and email_public.
+     */
+    'contact_directory' => [
+        'intro' => 'Tenwek Hospital College sits alongside Tenwek Hospital in Bomet. Use the directory below to reach the School of Chaplaincy, the College of Health Sciences, the main hospital, or the Cardiothoracic Centre—or send us a message and we will route it appropriately.',
+        'hospital' => [
+            'tagline' => 'Level 5 teaching and referral hospital—clinical home for our health sciences students and the wider community.',
+            'phone' => env('TENWEK_HOSPITAL_PHONE', '+254 728 091 900'),
+            'email' => env('TENWEK_HOSPITAL_EMAIL'),
+        ],
+        'ctc' => [
+            'tagline' => 'Specialised cardiothoracic surgical care and partnerships as part of the Tenwek ecosystem.',
+            'phone' => env('TENWEK_CTC_PHONE'),
+            'email' => env('TENWEK_CTC_EMAIL'),
+        ],
+    ],
+
     /** Defaults match the legacy WordPress college site; override with env or set to empty string to hide. */
     'social' => array_filter([
         'facebook' => env('TENWEK_SOCIAL_FACEBOOK', 'https://www.facebook.com/TenwekHospital/'),
@@ -47,7 +66,7 @@ return [
 
     'landing' => [
         'cream_bg' => env('TENWEK_LANDING_SECTION_BG', '#FFFFFF'),
-        'soc_purple' => env('TENWEK_SOC_CARD_BG', '#800000'),
+        'soc_purple' => env('TENWEK_SOC_CARD_BG', '#8265ae'),
         /** Hero image for School of Chaplaincy card on the home page (under public/). */
         'soc_card_image' => env('TENWEK_SOC_CARD_IMAGE', 'banner-a.jpg'),
         /** Hero image for College of Health Sciences / nursing card on the home page (under public/). */
@@ -966,62 +985,15 @@ return [
     ],
 
     'navigation' => [
+        /**
+         * Main college header (non-school pages): keep this short. Other destinations
+         * use CMS pages (`pages` with school_id null) and in-page content.
+         */
         'primary' => [
-            /** Sitemap mirrored from https://tenwekhospitalcollege.ac.ke/ subsites /soc/ and /cohs/ */
-            ['label' => 'Schools', 'groups' => [
-                [
-                    'heading' => 'School of Chaplaincy',
-                    'children' => [
-                        ['label' => 'School home', 'route' => 'schools.show', 'params' => ['school' => 'soc']],
-                        ['label' => 'About us', 'route' => 'schools.pages.show', 'params' => ['school' => 'soc', 'pageSlug' => 'about-us']],
-                        ['label' => 'Register', 'route' => 'soc.register', 'params' => []],
-                        ['label' => 'Academic programmes', 'route' => 'schools.pages.show', 'params' => ['school' => 'soc', 'pageSlug' => 'academic-programmes']],
-                        ['label' => 'Admissions', 'route' => 'schools.pages.show', 'params' => ['school' => 'soc', 'pageSlug' => 'admissions']],
-                        ['label' => 'Board & management team', 'route' => 'schools.pages.show', 'params' => ['school' => 'soc', 'pageSlug' => 'board-and-management-team']],
-                        ['label' => 'FAQs', 'route' => 'schools.pages.show', 'params' => ['school' => 'soc', 'pageSlug' => 'faqs']],
-                        ['label' => 'Fees', 'route' => 'schools.pages.show', 'params' => ['school' => 'soc', 'pageSlug' => 'fee']],
-                        ['label' => 'Gallery', 'route' => 'schools.pages.show', 'params' => ['school' => 'soc', 'pageSlug' => 'gallery']],
-                        ['label' => 'Message from the principal', 'route' => 'schools.pages.show', 'params' => ['school' => 'soc', 'pageSlug' => 'message-from-the-principal']],
-                        ['label' => 'Our history', 'route' => 'schools.pages.show', 'params' => ['school' => 'soc', 'pageSlug' => 'our-history']],
-                        ['label' => 'Strategic partners', 'route' => 'schools.pages.show', 'params' => ['school' => 'soc', 'pageSlug' => 'strategic-partners']],
-                    ],
-                ],
-                [
-                    'heading' => 'College of Health Sciences',
-                    'children' => [
-                        ['label' => 'College home', 'route' => 'schools.show', 'params' => ['school' => 'cohs']],
-                        ['label' => 'About us', 'route' => 'schools.pages.show', 'params' => ['school' => 'cohs', 'pageSlug' => 'about-us']],
-                        ['label' => 'Diploma in Nursing', 'route' => 'schools.pages.show', 'params' => ['school' => 'cohs', 'pageSlug' => 'diploma-in-nursing']],
-                        ['label' => 'Diploma in Clinical Medicine', 'route' => 'schools.pages.show', 'params' => ['school' => 'cohs', 'pageSlug' => 'diploma-in-clinical-medicine']],
-                        ['label' => 'Social life', 'route' => 'schools.pages.show', 'params' => ['school' => 'cohs', 'pageSlug' => 'social-life']],
-                        ['label' => 'Facilities', 'route' => 'schools.pages.show', 'params' => ['school' => 'cohs', 'pageSlug' => 'facilities']],
-                        ['label' => 'On-campus application', 'route' => 'cohs.on-campus-application', 'params' => []],
-                        ['label' => 'Off-campus application', 'route' => 'schools.pages.show', 'params' => ['school' => 'cohs', 'pageSlug' => 'offcampus-link']],
-                        ['label' => 'Application forms', 'route' => 'schools.pages.show', 'params' => ['school' => 'cohs', 'pageSlug' => 'application-forms']],
-                        ['label' => 'Downloads & forms', 'route' => 'downloads.index', 'params' => ['school' => 'cohs']],
-                        ['label' => 'Contact us', 'route' => 'schools.pages.show', 'params' => ['school' => 'cohs', 'pageSlug' => 'contact-us']],
-                    ],
-                ],
-            ]],
-            ['label' => 'Admissions', 'route' => 'pages.show', 'params' => ['slug' => 'admissions']],
-            ['label' => 'Academics', 'route' => 'pages.show', 'params' => ['slug' => 'academics']],
-            ['label' => 'Programs', 'route' => 'pages.show', 'params' => ['slug' => 'programs']],
-            ['label' => 'Student Life', 'route' => 'pages.show', 'params' => ['slug' => 'student-life']],
-            ['label' => 'Clinical Training', 'route' => 'pages.show', 'params' => ['slug' => 'clinical-training']],
+            ['label' => 'Schools', 'route' => 'home', 'fragment' => 'schools'],
             ['label' => 'Downloads', 'route' => 'downloads.index'],
             ['label' => 'News & Events', 'route' => 'news.index'],
-            ['label' => 'About', 'children' => [
-                ['label' => 'About the Institution', 'route' => 'pages.show', 'params' => ['slug' => 'about']],
-                ['label' => 'Governance', 'route' => 'pages.show', 'params' => ['slug' => 'governance']],
-                ['label' => 'Contact', 'route' => 'contact.show'],
-            ]],
-        ],
-        'audiences' => [
-            ['label' => 'Prospective students', 'route' => 'pages.show', 'params' => ['slug' => 'admissions']],
-            ['label' => 'Parents & guardians', 'route' => 'pages.show', 'params' => ['slug' => 'parents']],
-            ['label' => 'Faculty & staff', 'route' => 'pages.show', 'params' => ['slug' => 'faculty-resources']],
-            ['label' => 'Partners', 'route' => 'pages.show', 'params' => ['slug' => 'partners']],
-            ['label' => 'International applicants', 'route' => 'pages.show', 'params' => ['slug' => 'international']],
+            ['label' => 'About', 'route' => 'pages.show', 'params' => ['slug' => 'about']],
         ],
     ],
 ];

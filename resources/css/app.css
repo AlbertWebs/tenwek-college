@@ -9,25 +9,31 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
     --font-serif: 'Source Serif 4', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
-    --color-thc-navy: #002147;
-    --color-thc-royal: #0056b3;
-    --color-thc-maroon: #800000;
-    /* School of Chaplaincy — replaces maroon under .thc-soc-skin (landing + inner pages) */
-    --color-thc-soc-purple: #7a00df;
-    /* School of Chaplaincy teal — used sparingly under .thc-soc-skin */
-    --color-thc-soc-teal: #156874;
+    /* Brand: navy #1a1a68, purple #8265ae, teal #62a3a1; line accent #e7282c (use sparingly) */
+    --color-thc-navy: #1a1a68;
+    --color-thc-royal: #8265ae;
+    --color-thc-maroon: #8265ae;
+    /* School of Chaplaincy — aligns with brand purple under .thc-soc-skin */
+    --color-thc-soc-purple: #8265ae;
+    /**
+     * Secondary accent — shared with School of Chaplaincy skin via --color-thc-soc-teal.
+     */
+    --color-thc-teal: #62a3a1;
+    --color-thc-soc-teal: var(--color-thc-teal);
+    /** Minimal structural accent (hairlines, rare borders) */
+    --color-thc-line: #e7282c;
     --color-thc-text: #444444;
     --color-thc-surface: #ffffff;
     --radius-thc-card: 1.25rem;
-    --shadow-thc-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 12px 40px rgb(0 33 71 / 0.07);
-    --shadow-thc-card-hover: 0 4px 6px rgb(0 0 0 / 0.05), 0 22px 50px rgb(0 33 71 / 0.12);
+    --shadow-thc-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 12px 40px rgb(26 26 104 / 0.07);
+    --shadow-thc-card-hover: 0 4px 6px rgb(0 0 0 / 0.05), 0 22px 50px rgb(26 26 104 / 0.12);
     --admin-sidebar-bg: #0f1419;
-    --admin-sidebar-accent: rgb(0 86 179 / 0.35);
-    --admin-canvas-bg: rgb(0 33 71 / 0.04);
+    --admin-sidebar-accent: rgb(130 101 174 / 0.38);
+    --admin-canvas-bg: rgb(26 26 104 / 0.04);
     --admin-radius-field: 0.75rem;
     --admin-radius-card: var(--radius-thc-card);
-    --admin-input-border: rgb(0 33 71 / 0.12);
-    --admin-input-shadow: 0 1px 2px rgb(0 33 71 / 0.04);
+    --admin-input-border: rgb(26 26 104 / 0.12);
+    --admin-input-shadow: 0 1px 2px rgb(26 26 104 / 0.04);
     --admin-row-height: 3.25rem;
 }
 
@@ -39,6 +45,10 @@
     body {
         font-feature-settings: 'kern' 1, 'liga' 1;
         @apply text-thc-text;
+    }
+
+    ::selection {
+        background-color: rgb(98 163 161 / 0.28);
     }
 
     /* SOC public site: use brand purple instead of global maroon for all thc-maroon-* utilities */
@@ -66,12 +76,12 @@
 
     /** Shared hero strip for SOC inner pages (light teal wash into white). */
     .soc-page-hero {
-        @apply border-b border-thc-navy/8 bg-gradient-to-b from-thc-soc-teal/[0.09] via-white to-white;
+        @apply border-b border-thc-line/25 bg-gradient-to-b from-thc-soc-teal/[0.09] via-white to-white;
     }
 
     /** COHS inner pages — subtle royal wash (matches /cohs landing accent). */
     .cohs-page-hero {
-        @apply border-b border-thc-navy/8 bg-gradient-to-b from-thc-royal/[0.09] via-white to-white;
+        @apply border-b border-thc-line/25 bg-gradient-to-b from-thc-royal/[0.09] via-white to-white;
     }
 
     /** COHS online application form controls */
@@ -101,7 +111,7 @@
     }
 
     .cohs-contact-submit {
-        background: linear-gradient(135deg, #002147 0%, #0056b3 100%);
+        background: linear-gradient(135deg, #1a1a68 0%, #8265ae 100%);
     }
 
     .cohs-contact-prose a {
@@ -116,7 +126,7 @@
 
     .thc-btn-primary {
         @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white shadow-lg transition duration-200;
-        background: linear-gradient(135deg, #002147 0%, #0056b3 100%);
+        background: linear-gradient(135deg, #1a1a68 0%, #8265ae 100%);
     }
 
     .thc-btn-primary:hover {
@@ -140,7 +150,7 @@
     }
 
     .thc-btn-ghost {
-        @apply inline-flex items-center gap-2 rounded-full border border-thc-navy/15 bg-thc-surface px-6 py-3 text-sm font-semibold text-thc-navy shadow-sm transition duration-200 hover:border-thc-royal/35 hover:bg-thc-royal/5;
+        @apply inline-flex items-center gap-2 rounded-full border border-thc-navy/15 bg-thc-surface px-6 py-3 text-sm font-semibold text-thc-navy shadow-sm transition duration-200 hover:border-thc-royal/30 hover:bg-gradient-to-br hover:from-thc-royal/[0.05] hover:to-thc-teal/[0.06];
     }
 
     /**
@@ -149,8 +159,10 @@
      * contact emphasis, CTA strip, sub-bar.
      */
     .thc-site-footer {
-        background: linear-gradient(180deg, #001a38 0%, #002147 38%, #01152f 100%);
-        box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+        background: linear-gradient(180deg, #12124d 0%, #1a1a68 40%, #15154a 100%);
+        box-shadow:
+            inset 0 1px 0 rgb(231 40 44 / 0.22),
+            inset 0 -1px 0 rgb(98 163 161 / 0.18);
     }
 
     .thc-footer-backtotop {
@@ -199,11 +211,43 @@
     }
 
     .thc-footer-sub {
-        @apply border-t border-white/10 bg-black/20;
+        @apply border-t border-white/10 bg-gradient-to-b from-black/25 to-black/35;
     }
 
     .thc-footer-sub-inner {
-        @apply mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 text-xs text-white/55 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8;
+        @apply mx-auto max-w-7xl px-4 py-7 sm:px-6 lg:px-8;
+    }
+
+    .thc-footer-sub-row {
+        @apply flex flex-col items-center gap-5 text-center sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:text-left;
+    }
+
+    .thc-footer-sub-copy {
+        @apply max-w-xl text-[11px] leading-relaxed text-white/55 sm:text-sm sm:text-white/70;
+    }
+
+    .thc-footer-sub-copy strong {
+        @apply font-semibold text-white/80;
+    }
+
+    .thc-footer-sub-nav {
+        @apply flex flex-wrap items-center justify-center gap-x-0 gap-y-2 sm:justify-end;
+    }
+
+    .thc-footer-sub-link {
+        @apply rounded px-2.5 py-1.5 text-xs font-medium text-white/65 transition hover:bg-white/[0.07] hover:text-white;
+    }
+
+    .thc-footer-sub-sep {
+        @apply mx-1 hidden text-white/20 select-none sm:inline;
+    }
+
+    .thc-footer-sub-meta {
+        @apply mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 border-t border-white/10 pt-5 text-[11px] text-white/45 sm:mt-6 sm:justify-start sm:gap-x-6;
+    }
+
+    .thc-footer-sub-meta a {
+        @apply font-medium text-white/55 underline-offset-4 transition hover:text-white/85 hover:underline;
     }
 
     .thc-footer-social-btn {
@@ -383,6 +427,10 @@
 
     .admin-dropdown-item:focus-visible {
         @apply bg-thc-navy/[0.04] outline-none ring-2 ring-inset ring-thc-royal/40;
+    }
+
+    .admin-dropdown-item--active {
+        @apply border-l-2 border-thc-royal bg-thc-royal/10 pl-[calc(0.75rem-2px)] font-semibold text-thc-navy hover:bg-thc-royal/[0.14];
     }
 
     .admin-card {

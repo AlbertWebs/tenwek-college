@@ -3,12 +3,14 @@
 namespace Tests\Feature;
 
 use App\Models\FormSubmission;
+use App\Models\MediaAsset;
 use App\Models\School;
 use App\Models\SocProgrammeGroup;
 use App\Models\SocProgrammeItem;
 use App\Models\User;
 use Database\Seeders\TenwekFoundationSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class SocAdminCmsTest extends TestCase
@@ -99,5 +101,27 @@ class SocAdminCmsTest extends TestCase
             ->get(route('admin.soc.submissions.show', $submission))
             ->assertOk()
             ->assertSee('Jane', false);
+    }
+
+    public function test_soc_admin_can_batch_upload_media(): void
+    {
+        $this->seed(TenwekFoundationSeeder::class);
+        $user = User::query()->where('email', 'soc.admin@tenwekhospitalcollege.ac.ke')->firstOrFail();
+        $soc = School::query()->where('slug', 'soc')->firstOrFail();
+
+        $files = [
+            UploadedFile::fake()->image('a.jpg', 100, 100),
+            UploadedFile::fake()->image('b.png', 80, 80),
+        ];
+
+        $this->actingAs($user)
+            ->post(route('admin.soc.media.store'), [
+                'files' => $files,
+                'alt_text' => 'Batch alt',
+            ])
+            ->assertRedirect(route('admin.soc.media.index'));
+
+        $this->assertSame(2, MediaAsset::query()->where('school_id', $soc->id)->count());
+        $this->assertSame('Batch alt', MediaAsset::query()->where('school_id', $soc->id)->first()->alt_text);
     }
 }

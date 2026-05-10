@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\ActivityLogController;
+use App\Http\Controllers\Admin\AdminSearchController;
 use App\Http\Controllers\Admin\Cohs\CohsDashboardController;
 use App\Http\Controllers\Admin\Cohs\CohsFormSubmissionController;
 use App\Http\Controllers\Admin\Cohs\CohsJsonSectionController;
@@ -9,12 +10,14 @@ use App\Http\Controllers\Admin\Cohs\CohsMediaController;
 use App\Http\Controllers\Admin\Cohs\CohsNavItemController;
 use App\Http\Controllers\Admin\Cohs\CohsNewsAdminController;
 use App\Http\Controllers\Admin\Cohs\CohsPageAdminController;
+use App\Http\Controllers\Admin\Cohs\CohsSchoolEventController;
 use App\Http\Controllers\Admin\Cohs\CohsTestimonialController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DownloadAdminController;
 use App\Http\Controllers\Admin\GlobalSeoController;
 use App\Http\Controllers\Admin\SiteSettingsController;
 use App\Http\Controllers\Admin\Soc\SocDashboardController;
+use App\Http\Controllers\Admin\Soc\SocFaqItemController;
 use App\Http\Controllers\Admin\Soc\SocFormSubmissionController;
 use App\Http\Controllers\Admin\Soc\SocJsonSectionController;
 use App\Http\Controllers\Admin\Soc\SocLandingFormsController;
@@ -24,6 +27,7 @@ use App\Http\Controllers\Admin\Soc\SocNewsAdminController;
 use App\Http\Controllers\Admin\Soc\SocPageAdminController;
 use App\Http\Controllers\Admin\Soc\SocProgrammeGroupController;
 use App\Http\Controllers\Admin\Soc\SocProgrammeItemController;
+use App\Http\Controllers\Admin\Soc\SocSchoolEventController;
 use App\Http\Controllers\Admin\Soc\SocTeamMemberController;
 use App\Http\Controllers\Admin\Soc\SocTestimonialController;
 use App\Http\Controllers\Admin\UserAdminController;
@@ -35,6 +39,7 @@ use App\Http\Controllers\NewsPostController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PublicDownloadController;
 use App\Http\Controllers\SchoolController;
+use App\Http\Controllers\SchoolEventController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SocRegistrationController;
@@ -91,6 +96,9 @@ Route::middleware(['auth', 'active_user', 'role:super_admin|soc_admin|cohs_admin
     ->name('admin.')
     ->group(function (): void {
         Route::get('/', DashboardController::class)->name('dashboard');
+        Route::get('/search', AdminSearchController::class)
+            ->middleware('throttle:60,1')
+            ->name('search');
 
         Route::get('/downloads', [DownloadAdminController::class, 'index'])->name('downloads.index');
         Route::get('/downloads/create', [DownloadAdminController::class, 'create'])->name('downloads.create');
@@ -136,6 +144,17 @@ Route::middleware(['auth', 'active_user', 'role:super_admin|soc_admin', 'manages
         Route::put('/seo', [SocLandingFormsController::class, 'updateSeo'])->name('seo.update');
         Route::get('/top-bar', [SocLandingFormsController::class, 'editTopBar'])->name('top-bar.edit');
         Route::put('/top-bar', [SocLandingFormsController::class, 'updateTopBar'])->name('top-bar.update');
+        Route::prefix('faqs')->name('faqs.')->group(function (): void {
+            Route::get('/', [SocFaqItemController::class, 'index'])->name('index');
+            Route::post('/import-legacy', [SocFaqItemController::class, 'importLegacy'])->name('import-legacy');
+            Route::get('/intro/edit', [SocFaqItemController::class, 'editIntro'])->name('intro.edit');
+            Route::put('/intro', [SocFaqItemController::class, 'updateIntro'])->name('intro.update');
+            Route::get('/create', [SocFaqItemController::class, 'create'])->name('create');
+            Route::post('/', [SocFaqItemController::class, 'store'])->name('store');
+            Route::get('/{faq}/edit', [SocFaqItemController::class, 'edit'])->name('edit');
+            Route::put('/{faq}', [SocFaqItemController::class, 'update'])->name('update');
+            Route::delete('/{faq}', [SocFaqItemController::class, 'destroy'])->name('destroy');
+        });
 
         Route::get('/sections/{section}/json', [SocJsonSectionController::class, 'edit'])->name('json.edit');
         Route::put('/sections/{section}/json', [SocJsonSectionController::class, 'update'])->name('json.update');
@@ -156,6 +175,7 @@ Route::middleware(['auth', 'active_user', 'role:super_admin|soc_admin', 'manages
         Route::put('/pages/{page}', [SocPageAdminController::class, 'update'])->name('pages.update');
 
         Route::resource('news', SocNewsAdminController::class)->except(['show']);
+        Route::resource('events', SocSchoolEventController::class)->except(['show']);
 
         Route::get('/submissions', [SocFormSubmissionController::class, 'index'])->name('submissions.index');
         Route::get('/submissions/{submission}', [SocFormSubmissionController::class, 'show'])->name('submissions.show');
@@ -204,6 +224,7 @@ Route::middleware(['auth', 'active_user', 'role:super_admin|cohs_admin', 'manage
         Route::put('/pages/{page}', [CohsPageAdminController::class, 'update'])->name('pages.update');
 
         Route::resource('news', CohsNewsAdminController::class)->except(['show']);
+        Route::resource('events', CohsSchoolEventController::class)->except(['show']);
 
         Route::get('/submissions', [CohsFormSubmissionController::class, 'index'])->name('submissions.index');
         Route::get('/submissions/{submission}', [CohsFormSubmissionController::class, 'show'])->name('submissions.show');
@@ -229,6 +250,14 @@ Route::get('/cohs/off-campus-application', function () {
 
     return redirect()->away((string) $url);
 })->name('cohs.off-campus-application.redirect');
+
+Route::get('/{school}/events/{eventSlug}', [SchoolEventController::class, 'show'])
+    ->where('school', 'soc|cohs')
+    ->where('eventSlug', '[a-z0-9\-]+')
+    ->name('schools.events.show');
+Route::get('/{school}/events', [SchoolEventController::class, 'index'])
+    ->where('school', 'soc|cohs')
+    ->name('schools.events.index');
 
 Route::get('/{school}', [SchoolController::class, 'show'])
     ->where('school', 'soc|cohs')

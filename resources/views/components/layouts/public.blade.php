@@ -20,6 +20,15 @@
         }
     }
 
+    // School events listing/detail: use school header when viewing /{school}/events.
+    if ($landingHeader === null && $school === null && request()->routeIs('schools.events.*')) {
+        $routeSchool = request()->route('school');
+        if ($routeSchool instanceof \App\Models\School && in_array($routeSchool->slug, ['soc', 'cohs'], true)) {
+            $school = $routeSchool;
+            $landingHeader = $routeSchool->slug;
+        }
+    }
+
     // Search: same as downloads when scoped with ?school=cohs|soc.
     if ($landingHeader === null && $school === null && request()->routeIs('search') && request()->filled('school')) {
         $schoolSlug = (string) request()->input('school');
@@ -35,6 +44,18 @@
     }
 
     $showPublicHeader = ! request()->routeIs('home') || in_array($landingHeader, ['soc', 'cohs'], true);
+
+    $primaryNavHref = function (array $item): string {
+        if (! empty($item['url'])) {
+            return $item['url'];
+        }
+        $u = route($item['route'], $item['params'] ?? []);
+        if (! empty($item['fragment'])) {
+            $u .= '#'.ltrim((string) $item['fragment'], '#');
+        }
+
+        return $u;
+    };
 @endphp
 
 <!DOCTYPE html>
@@ -123,7 +144,9 @@
                     @else
                         @php
                             $isActive = false;
-                            if (($item['route'] ?? '') === 'downloads.index') {
+                            if (($item['route'] ?? '') === 'home' && (($item['fragment'] ?? '') === 'schools')) {
+                                $isActive = request()->routeIs('home');
+                            } elseif (($item['route'] ?? '') === 'downloads.index') {
                                 $isActive = request()->routeIs('downloads.*');
                             } elseif (($item['route'] ?? '') === 'news.index') {
                                 $isActive = request()->routeIs('news.*');
@@ -132,7 +155,7 @@
                             }
                         @endphp
                         <a
-                            href="{{ route($item['route'], $item['params'] ?? []) }}"
+                            href="{{ $primaryNavHref($item) }}"
                             class="rounded-lg px-3 py-2 text-sm font-medium transition"
                             :class="@json($isActive)
                                 ? (!isHomePage || navScrolled ? 'bg-thc-royal/12 text-thc-navy' : 'bg-white/15 text-white')
@@ -296,7 +319,7 @@
                             @endforeach
                         </div>
                     @else
-                        <a href="{{ route($item['route'], $item['params'] ?? []) }}" class="block rounded-lg px-3 py-3 text-sm font-semibold text-thc-navy hover:bg-thc-royal/8" @click="mobileNavOpen = false">{{ $item['label'] }}</a>
+                        <a href="{{ $primaryNavHref($item) }}" class="block rounded-lg px-3 py-3 text-sm font-semibold text-thc-navy hover:bg-thc-royal/8" @click="mobileNavOpen = false">{{ $item['label'] }}</a>
                     @endif
                 @endforeach
                 <button
@@ -356,12 +379,13 @@
     <footer class="thc-site-footer text-white">
         <a href="#top" class="thc-footer-backtotop">{{ __('Back to top') }}</a>
 
-        <div class="mx-auto max-w-7xl px-4 pb-6 pt-12 sm:px-6 lg:px-8 lg:pb-8 lg:pt-16">
-            <div class="grid gap-12 lg:grid-cols-12 lg:gap-10 xl:gap-14">
-                <div class="lg:col-span-4">
+        <div class="mx-auto max-w-7xl px-4 pb-6 pt-12 sm:px-6 lg:px-8 lg:pb-10 lg:pt-16">
+            <div class="grid gap-10 sm:gap-12 lg:grid-cols-4 lg:gap-8 xl:gap-10">
+                {{-- Brand --}}
+                <div class="lg:max-w-sm">
                     <p class="thc-footer-eyebrow">{{ __('Part of :hospital', ['hospital' => config('tenwek.hospital.name')]) }}</p>
                     <p class="thc-footer-brand">{{ config('tenwek.name') }}</p>
-                    <p class="mt-4 max-w-md text-sm leading-relaxed text-white/85">{{ config('tenwek.tagline') }}</p>
+                    <p class="mt-4 text-sm leading-relaxed text-white/85">{{ config('tenwek.tagline') }}</p>
                     @foreach(array_filter(config('tenwek.footer.accreditation', [])) as $line)
                         <p class="mt-4 text-xs leading-relaxed text-white/60">{{ $line }}</p>
                     @endforeach
@@ -392,51 +416,43 @@
                     @endif
                 </div>
 
-                <div class="lg:col-span-2">
-                    <h3 class="thc-footer-col-title">{{ __('Schools & audiences') }}</h3>
+                {{-- Schools --}}
+                <div>
+                    <h3 class="thc-footer-col-title">{{ __('Schools') }}</h3>
                     <ul class="mt-5 space-y-2.5">
-                        <li><a href="{{ route('schools.show', ['school' => 'soc']) }}" class="thc-footer-link">{{ __('School of Chaplaincy') }}</a></li>
-                        <li><a href="{{ route('schools.show', ['school' => 'cohs']) }}" class="thc-footer-link">{{ __('College of Health Sciences') }}</a></li>
-                    </ul>
-                    <ul class="mt-6 space-y-2.5 border-t border-white/10 pt-6">
-                        @foreach(config('tenwek.navigation.audiences') as $audience)
-                            <li>
-                                <a href="{{ route($audience['route'], $audience['params'] ?? []) }}" class="thc-footer-link">{{ $audience['label'] }}</a>
-                            </li>
-                        @endforeach
+                        <li>
+                            <a href="{{ route('home') }}#schools" class="thc-footer-link">{{ __('Choose a school') }}</a>
+                        </li>
+                        <li>
+                            <a href="{{ route('schools.show', ['school' => 'soc']) }}" class="thc-footer-link">{{ __('School of Chaplaincy') }}</a>
+                        </li>
+                        <li>
+                            <a href="{{ route('schools.show', ['school' => 'cohs']) }}" class="thc-footer-link">{{ __('College of Health Sciences') }}</a>
+                        </li>
                     </ul>
                 </div>
 
-                <div class="lg:col-span-3">
-                    <h3 class="thc-footer-col-title">{{ __('Explore') }}</h3>
+                {{-- Same destinations as main nav + search --}}
+                <div>
+                    <h3 class="thc-footer-col-title">{{ __('On this site') }}</h3>
                     <ul class="mt-5 space-y-2.5">
                         @foreach(config('tenwek.navigation.primary') as $item)
-                            @if(!empty($item['groups']))
-                                @foreach($item['groups'] as $group)
-                                    @php $groupHome = collect($group['children'] ?? [])->first(fn ($c) => ($c['route'] ?? '') === 'schools.show'); @endphp
-                                    @if($groupHome)
-                                        <li>
-                                            <a href="{{ route($groupHome['route'], $groupHome['params'] ?? []) }}" class="thc-footer-link">{{ $group['heading'] }}</a>
-                                        </li>
-                                    @endif
-                                @endforeach
-                            @elseif(!empty($item['children']))
-                                @foreach($item['children'] as $child)
-                                    <li>
-                                        <a href="{{ route($child['route'], $child['params'] ?? []) }}" class="thc-footer-link">{{ $child['label'] }}</a>
-                                    </li>
-                                @endforeach
-                            @else
-                                <li>
-                                    <a href="{{ route($item['route'], $item['params'] ?? []) }}" class="thc-footer-link">{{ $item['label'] }}</a>
-                                </li>
-                            @endif
+                            <li>
+                                <a href="{{ $primaryNavHref($item) }}" class="thc-footer-link">{{ $item['label'] }}</a>
+                            </li>
                         @endforeach
+                        <li>
+                            <a href="{{ route('search') }}" class="thc-footer-link">{{ __('Search') }}</a>
+                        </li>
+                        <li>
+                            <a href="{{ route('contact.show') }}" class="thc-footer-link">{{ __('Contact') }}</a>
+                        </li>
                     </ul>
                 </div>
 
-                <div class="lg:col-span-3">
-                    <h3 class="thc-footer-col-title">{{ __('Contact') }}</h3>
+                {{-- Location & related organisations --}}
+                <div>
+                    <h3 class="thc-footer-col-title">{{ __('Visit & connect') }}</h3>
                     <ul class="mt-5 space-y-2 text-sm text-white/80">
                         <li>{{ config('tenwek.address.street') }}</li>
                         <li>{{ config('tenwek.address.locality') }}, {{ config('tenwek.address.country_name') }}</li>
@@ -447,9 +463,10 @@
                     </p>
                     <p class="mt-3 text-sm text-white/80">
                         <span class="block text-[11px] font-bold uppercase tracking-[0.16em] text-white/45">{{ __('Email') }}</span>
-                        <a href="mailto:{{ config('tenwek.email_public') }}" class="thc-footer-link mt-0.5 inline-block font-semibold text-white">{{ config('tenwek.email_public') }}</a>
+                        <a href="mailto:{{ config('tenwek.email_public') }}" class="thc-footer-link mt-0.5 inline-block break-all font-semibold text-white">{{ config('tenwek.email_public') }}</a>
                     </p>
-                    <ul class="mt-6 space-y-2 border-t border-white/10 pt-6 text-sm">
+                    <p class="thc-footer-col-title mt-8">{{ __('Also at Tenwek') }}</p>
+                    <ul class="mt-3 space-y-2.5 text-sm">
                         <li>
                             <a href="{{ config('tenwek.hospital.url') }}" class="thc-footer-link" rel="noopener noreferrer">{{ config('tenwek.hospital.name') }}</a>
                         </li>
@@ -457,34 +474,52 @@
                             <a href="{{ config('tenwek.ctc.url') }}" class="thc-footer-link" rel="noopener noreferrer">{{ config('tenwek.ctc.name') }}</a>
                         </li>
                     </ul>
-
-                    <div class="thc-footer-emergency">
-                        <p class="thc-footer-emergency-label">{{ __('General enquiries') }}</p>
-                        <a href="tel:{{ preg_replace('/\s+/', '', config('tenwek.phone')) }}">{{ config('tenwek.phone') }}</a>
-                    </div>
                 </div>
-            </div>
-
-            <div class="thc-footer-cta-row">
-                <a href="{{ route('contact.show') }}" class="thc-footer-cta-btn">{{ __('Contact') }}</a>
-                <a href="{{ route('downloads.index') }}" class="thc-footer-cta-btn">{{ __('Downloads') }}</a>
             </div>
         </div>
 
+        @php
+            $footerSchoolSlug = ($landingHeader === 'soc' || $landingHeader === 'cohs') ? $landingHeader : null;
+            $footerDownloadsUrl = $footerSchoolSlug
+                ? route('downloads.index', ['school' => $footerSchoolSlug])
+                : route('downloads.index');
+            $footerSearchUrl = $footerSchoolSlug
+                ? route('search', ['school' => $footerSchoolSlug])
+                : route('search');
+        @endphp
         <div class="thc-footer-sub">
-            @if($landingHeader === 'soc')
-                <div class="mx-auto max-w-7xl px-4 py-6 text-center text-xs text-white/70 sm:px-6 sm:text-sm lg:px-8">
-                    <p>© {{ now()->year }} {{ config('tenwek.institution_legal') }}. {{ __('All rights reserved.') }}</p>
+            <div class="thc-footer-sub-inner">
+                <div class="thc-footer-sub-row">
+                    <p class="thc-footer-sub-copy">
+                        © <strong>{{ now()->year }}</strong> {{ config('tenwek.institution_legal') }}.
+                        <span class="text-white/45">{{ __('All rights reserved.') }}</span>
+                    </p>
+                    <nav class="thc-footer-sub-nav" aria-label="{{ __('Site footer') }}">
+                        <a href="{{ route('home') }}#schools" class="thc-footer-sub-link">{{ __('Schools') }}</a>
+                        <span class="thc-footer-sub-sep" aria-hidden="true">·</span>
+                        <a href="{{ $footerDownloadsUrl }}" class="thc-footer-sub-link">{{ __('Downloads') }}</a>
+                        <span class="thc-footer-sub-sep" aria-hidden="true">·</span>
+                        <a href="{{ route('news.index') }}" class="thc-footer-sub-link">{{ __('News & Events') }}</a>
+                        @if ($footerSchoolSlug)
+                            <span class="thc-footer-sub-sep" aria-hidden="true">·</span>
+                            <a href="{{ route('schools.events.index', $footerSchoolSlug) }}" class="thc-footer-sub-link">{{ __('School events') }}</a>
+                        @endif
+                        <span class="thc-footer-sub-sep" aria-hidden="true">·</span>
+                        <a href="{{ route('pages.show', ['slug' => 'about']) }}" class="thc-footer-sub-link">{{ __('About') }}</a>
+                        <span class="thc-footer-sub-sep" aria-hidden="true">·</span>
+                        <a href="{{ $footerSearchUrl }}" class="thc-footer-sub-link">{{ __('Search') }}</a>
+                        <span class="thc-footer-sub-sep" aria-hidden="true">·</span>
+                        <a href="{{ route('contact.show') }}" class="thc-footer-sub-link">{{ __('Contact') }}</a>
+                    </nav>
                 </div>
-            @else
-                <div class="thc-footer-sub-inner">
-                    <p>© {{ now()->year }} {{ config('tenwek.institution_legal') }}. {{ __('All rights reserved.') }}</p>
-                    <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
-                        <a href="{{ route('contact.show') }}" class="thc-footer-link text-white/65">{{ __('Contact') }}</a>
-                        <a href="{{ config('tenwek.ctc.url') }}" class="thc-footer-link text-white/65" rel="noopener noreferrer">{{ config('tenwek.ctc.name') }}</a>
-                    </div>
+                <div class="thc-footer-sub-meta">
+                    <span class="font-medium text-white/40">{{ __('Also at Tenwek') }}</span>
+                    <span class="hidden text-white/20 sm:inline" aria-hidden="true">·</span>
+                    <a href="{{ config('tenwek.hospital.url') }}" rel="noopener noreferrer">{{ config('tenwek.hospital.name') }}</a>
+                    <span class="text-white/20" aria-hidden="true">·</span>
+                    <a href="{{ config('tenwek.ctc.url') }}" rel="noopener noreferrer">{{ config('tenwek.ctc.name') }}</a>
                 </div>
-            @endif
+            </div>
         </div>
     </footer>
     @endif

@@ -51,4 +51,23 @@ class NewsPost extends Model
     {
         return $query->whereNotNull('published_at')->where('published_at', '<=', now());
     }
+
+    /**
+     * Public URL for uploaded images (public disk) or legacy paths under public/.
+     */
+    public function featuredImagePublicUrl(): ?string
+    {
+        $path = $this->featured_image_path;
+        if ($path === null || $path === '') {
+            return null;
+        }
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+        if (str_starts_with($path, 'soc/') || str_starts_with($path, 'cohs/')) {
+            return asset('storage/'.$path);
+        }
+
+        return asset($path);
+    }
 }

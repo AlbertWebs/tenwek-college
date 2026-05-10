@@ -119,6 +119,188 @@ document.addEventListener('alpine:init', () => {
             this.summary.campus = camp && camp.selectedIndex >= 0 ? (camp.options[camp.selectedIndex]?.text || '').trim() : '';
         },
     }));
+
+    /** SOC admin /media: drag-and-drop multi-file queue before POST */
+    Alpine.data('socMediaDropzone', () => ({
+        dragging: false,
+        items: [],
+        nextId: 0,
+        hint: '',
+        maxFiles: 40,
+        maxBytes: 12288 * 1024,
+
+        accepts(file) {
+            if (this.mimeOk(file.type)) {
+                return true;
+            }
+
+            return /\.(jpe?g|png|gif|webp|svg|pdf)$/i.test(file.name);
+        },
+
+        mimeOk(type) {
+            if (!type) {
+                return false;
+            }
+
+            return (
+                type === 'image/jpeg' ||
+                type === 'image/png' ||
+                type === 'image/gif' ||
+                type === 'image/webp' ||
+                type === 'image/svg+xml' ||
+                type === 'application/pdf'
+            );
+        },
+
+        addFiles(fileList) {
+            this.hint = '';
+            if (!fileList?.length) {
+                return;
+            }
+            let skipped = 0;
+            for (const file of Array.from(fileList)) {
+                if (this.items.length >= this.maxFiles) {
+                    skipped += 1;
+
+                    continue;
+                }
+                if (file.size > this.maxBytes) {
+                    skipped += 1;
+
+                    continue;
+                }
+                if (!this.accepts(file)) {
+                    skipped += 1;
+
+                    continue;
+                }
+                const previewUrl = file.type.startsWith('image/') ? URL.createObjectURL(file) : null;
+                this.items.push({ id: this.nextId++, file, previewUrl });
+            }
+            if (skipped) {
+                this.hint = `${skipped} file(s) skipped (40 max, allowed types, or 12MB per file).`;
+            }
+            this.syncInput();
+        },
+
+        remove(id) {
+            const item = this.items.find((i) => i.id === id);
+            if (item?.previewUrl) {
+                URL.revokeObjectURL(item.previewUrl);
+            }
+            this.items = this.items.filter((i) => i.id !== id);
+            this.syncInput();
+        },
+
+        clearAll() {
+            this.items.forEach((i) => {
+                if (i.previewUrl) {
+                    URL.revokeObjectURL(i.previewUrl);
+                }
+            });
+            this.items = [];
+            this.hint = '';
+            this.syncInput();
+        },
+
+        syncInput() {
+            const input = this.$refs.fileInput;
+            if (!input) {
+                return;
+            }
+            const dt = new DataTransfer();
+            this.items.forEach((i) => dt.items.add(i.file));
+            input.files = dt.files;
+        },
+
+        onNativePick(e) {
+            this.addFiles(e.target.files);
+        },
+
+        formatSize(n) {
+            if (n < 1024) {
+                return `${n} B`;
+            }
+            if (n < 1024 * 1024) {
+                return `${(n / 1024).toFixed(1)} KB`;
+            }
+
+            return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+        },
+    }));
+
+    /** SOC /gallery: in-page lightbox for grid images */
+    Alpine.data('socGallery', (config) => ({
+        items: Array.isArray(config?.items) ? config.items : [],
+        open: false,
+        activeIndex: 0,
+        touchStartX: 0,
+        init() {
+            this.$watch('open', (isOpen) => {
+                document.documentElement.classList.toggle('overflow-hidden', Boolean(isOpen));
+            });
+        },
+        onTouchStart(e) {
+            if (!e.changedTouches?.length) {
+                return;
+            }
+            this.touchStartX = e.changedTouches[0].screenX;
+        },
+        onTouchEnd(e) {
+            if (!this.open || !this.hasMany || !e.changedTouches?.length) {
+                return;
+            }
+            const dx = e.changedTouches[0].screenX - this.touchStartX;
+            if (dx < -48) {
+                this.next();
+            } else if (dx > 48) {
+                this.prev();
+            }
+        },
+        get active() {
+            return this.items[this.activeIndex] || { src: '', alt: '', caption: '' };
+        },
+        get hasMany() {
+            return this.items.length > 1;
+        },
+        openAt(index) {
+            if (index < 0 || index >= this.items.length) {
+                return;
+            }
+            this.activeIndex = index;
+            this.open = true;
+        },
+        close() {
+            this.open = false;
+        },
+        next() {
+            if (!this.hasMany) {
+                return;
+            }
+            this.activeIndex = (this.activeIndex + 1) % this.items.length;
+        },
+        prev() {
+            if (!this.hasMany) {
+                return;
+            }
+            this.activeIndex = (this.activeIndex - 1 + this.items.length) % this.items.length;
+        },
+        onKeydown(e) {
+            if (!this.open) {
+                return;
+            }
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                this.close();
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                this.next();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                this.prev();
+            }
+        },
+    }));
 });
 
 window.Alpine = Alpine;
@@ -155,4 +337,9 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initRevealAnimations);
 } else {
     initRevealAnimations();
+}
+
+const adminDashboardCharts = document.getElementById('admin-dashboard-charts');
+if (adminDashboardCharts) {
+    void import('./admin-dashboard-charts.js').then((m) => m.initAdminDashboard(adminDashboardCharts));
 }

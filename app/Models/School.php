@@ -38,6 +38,11 @@ class School extends Model
         return $this->hasMany(NewsPost::class);
     }
 
+    public function schoolEvents(): HasMany
+    {
+        return $this->hasMany(SchoolEvent::class);
+    }
+
     public function users(): HasMany
     {
         return $this->hasMany(User::class);

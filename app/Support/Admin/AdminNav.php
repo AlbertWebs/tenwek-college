@@ -55,8 +55,9 @@ final class AdminNav
                 self::link('Pages', 'admin.soc.pages.index', [], 'document-text', ['admin.soc.pages.*']),
                 self::link('Programmes', 'admin.soc.programme-groups.index', [], 'academic-cap', ['admin.soc.programme-groups.*', 'admin.soc.programme-groups.items.*']),
                 self::link('Testimonials', 'admin.soc.testimonials.index', [], 'chat-bubble-left-right', ['admin.soc.testimonials.*']),
-                self::link('Faculty & staff', 'admin.soc.team.index', [], 'users', ['admin.soc.team.*']),
+                self::link('Board & management team', 'admin.soc.team.index', [], 'users', ['admin.soc.team.*']),
                 self::link('News & events', 'admin.soc.news.index', [], 'megaphone', ['admin.soc.news.*']),
+                self::link('Events', 'admin.soc.events.index', [], 'flag', ['admin.soc.events.*']),
                 self::link('Media library', 'admin.soc.media.index', [], 'folder-open', ['admin.soc.media.*']),
                 self::link('Form submissions', 'admin.soc.submissions.index', [], 'inbox', ['admin.soc.submissions.*']),
                 self::link('Navigation menu', 'admin.soc.navigation.index', [], 'bars-3', ['admin.soc.navigation.*']),
@@ -64,6 +65,7 @@ final class AdminNav
                 self::link('Contact block', 'admin.soc.contact.edit', [], 'map-pin', ['admin.soc.contact.*']),
                 self::link('About', 'admin.soc.about.edit', [], 'book-open', ['admin.soc.about.*']),
                 self::link('Mission & vision', 'admin.soc.mission-vision.edit', [], 'flag', ['admin.soc.mission-vision.*']),
+                self::link('FAQs', 'admin.soc.faqs.index', [], 'chat-bubble-left-right', ['admin.soc.faqs.*']),
                 self::link('Motto', 'admin.soc.motto.edit', [], 'sparkles', ['admin.soc.motto.*']),
                 self::link('Top bar', 'admin.soc.top-bar.edit', [], 'signal', ['admin.soc.top-bar.*']),
             ];
@@ -99,6 +101,7 @@ final class AdminNav
                 self::link('Media library', 'admin.cohs.media.index', [], 'folder-open', ['admin.cohs.media.*']),
                 self::link('Pages', 'admin.cohs.pages.index', [], 'document-text', ['admin.cohs.pages.*']),
                 self::link('News & events', 'admin.cohs.news.index', [], 'megaphone', ['admin.cohs.news.*']),
+                self::link('Events', 'admin.cohs.events.index', [], 'flag', ['admin.cohs.events.*']),
                 self::link('Form submissions', 'admin.cohs.submissions.index', [], 'inbox', ['admin.cohs.submissions.*']),
                 self::link('COHS downloads', 'admin.downloads.index', ['school' => 'cohs'], 'arrow-down-tray', ['admin.downloads.*']),
             ];

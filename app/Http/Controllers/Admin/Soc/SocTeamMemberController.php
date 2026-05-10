@@ -6,6 +6,7 @@ use App\Models\SocTeamMember;
 use App\Support\Soc\SocLandingRepository;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -83,6 +84,7 @@ class SocTeamMemberController extends BaseSocAdminController
         $data['highlight'] = $request->boolean('highlight', false);
         $data['is_published'] = $request->boolean('is_published', true);
         if ($request->hasFile('image')) {
+            $this->deleteStoredTeamPortrait((int) $soc->id, $team->image_path);
             $data['image_path'] = $request->file('image')->store('soc/'.$soc->id.'/team', 'public');
         }
         $team->update($data);
@@ -95,9 +97,21 @@ class SocTeamMemberController extends BaseSocAdminController
     {
         $soc = $this->socSchool($request);
         abort_unless((int) $team->school_id === (int) $soc->id, 404);
+        $this->deleteStoredTeamPortrait((int) $soc->id, $team->image_path);
         $team->delete();
         SocLandingRepository::flushCache();
 
         return redirect()->route('admin.soc.team.index')->with('status', 'Team member removed.');
+    }
+
+    private function deleteStoredTeamPortrait(int $schoolId, ?string $path): void
+    {
+        if ($path === null || $path === '') {
+            return;
+        }
+        $prefix = 'soc/'.$schoolId.'/team/';
+        if (str_starts_with($path, $prefix)) {
+            Storage::disk('public')->delete($path);
+        }
     }
 }

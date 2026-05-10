@@ -24,7 +24,9 @@ class SeoPresenter
 
         $canonical = self::absoluteUrl($request, $overrides['canonical'] ?? $request->url());
         $ogImagePath = ! empty($g['default_og_image']) ? $g['default_og_image'] : config('tenwek.default_og_image');
-        $defaultImage = self::absoluteUrl($request, asset($ogImagePath));
+        $defaultImage = Str::startsWith((string) $ogImagePath, ['http://', 'https://'])
+            ? self::absoluteUrl($request, (string) $ogImagePath)
+            : self::absoluteUrl($request, asset($ogImagePath));
 
         $title = self::normalizeTitle($overrides['title'] ?? $baseTitle, $baseTitle);
         $descriptionSource = $overrides['description']

@@ -24,7 +24,7 @@
                             @if($post->featured_image_path)
                                 <div class="aspect-[16/10] w-full overflow-hidden bg-thc-navy/[0.06]">
                                     <img
-                                        src="{{ asset($post->featured_image_path) }}"
+                                        src="{{ $post->featuredImagePublicUrl() }}"
                                         alt=""
                                         loading="lazy"
                                         decoding="async"

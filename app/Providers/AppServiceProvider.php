@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\School;
 use App\Models\SiteAdminSetting;
 use App\Support\Admin\AdminNav;
+use App\Support\Admin\CohsAdminPageHints;
 use App\Support\Cohs\CohsLandingRepository;
 use App\Support\Soc\SocLandingRepository;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -47,6 +48,12 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer('components.layouts.admin', function ($view): void {
             $view->with('adminNavGroups', AdminNav::groups(request()));
+            $view->with(
+                'cohsPageHint',
+                request()->routeIs('admin.cohs.*')
+                    ? CohsAdminPageHints::message(request()->route()?->getName())
+                    : null,
+            );
         });
 
         View::composer([

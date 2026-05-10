@@ -2,7 +2,9 @@
 
 namespace App\Support\Soc;
 
+use App\Models\MediaAsset;
 use App\Models\School;
+use App\Models\SocFaqItem;
 use App\Models\SocLandingSection;
 use App\Models\SocNavItem;
 use App\Models\SocProgrammeGroup;
@@ -70,6 +72,8 @@ final class SocLandingRepository
         $base['main_nav'] = $this->mainNavFor($school, $base['main_nav'] ?? []);
         $base['board_and_management'] = $this->mergeTeam($school, $base['board_and_management'] ?? []);
         $base['academic_programmes'] = $this->mergeProgrammes($school, $base['academic_programmes'] ?? []);
+        $base['gallery'] = $this->mergeGalleryMedia($school, $base['gallery'] ?? []);
+        $base['faqs'] = $this->mergeFaqItems($school, $base['faqs'] ?? []);
 
         self::$cache[$key] = $base;
 
@@ -125,6 +129,86 @@ final class SocLandingRepository
         }
 
         return asset($path);
+    }
+
+    /**
+     * Prepends SOC media library images (admin uploads) into the gallery; newest first.
+     * Skips duplicate `src` values already present in config/JSON items.
+     *
+     * @param  array<string, mixed>  $block
+     * @return array<string, mixed>
+     */
+    /**
+     * @param  array<string, mixed>  $faqsBlock
+     * @return array<string, mixed>
+     */
+    private function mergeFaqItems(School $school, array $faqsBlock): array
+    {
+        if ($school->slug !== 'soc') {
+            return $faqsBlock;
+        }
+
+        $rows = SocFaqItem::query()
+            ->where('school_id', $school->id)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
+        if ($rows->isEmpty()) {
+            return $faqsBlock;
+        }
+
+        $faqsBlock['items'] = $rows->map(static fn (SocFaqItem $r) => $r->toLegacyItemArray())->all();
+
+        return $faqsBlock;
+    }
+
+    private function mergeGalleryMedia(School $school, array $block): array
+    {
+        if ($school->slug !== 'soc') {
+            return $block;
+        }
+
+        $items = $block['items'] ?? [];
+        if (! is_array($items)) {
+            $items = [];
+        }
+
+        $seen = [];
+        foreach ($items as $row) {
+            if (is_array($row) && filled($row['src'] ?? null)) {
+                $seen[(string) $row['src']] = true;
+            }
+        }
+
+        $mediaRows = [];
+        $assets = MediaAsset::query()
+            ->where('school_id', $school->id)
+            ->orderByDesc('id')
+            ->get();
+
+        foreach ($assets as $asset) {
+            if (! $asset->isPreviewableImage()) {
+                continue;
+            }
+            $src = $asset->path;
+            if (isset($seen[$src])) {
+                continue;
+            }
+            $seen[$src] = true;
+            $caption = filled($asset->alt_text)
+                ? $asset->alt_text
+                : pathinfo((string) $asset->original_filename, PATHINFO_FILENAME);
+            $mediaRows[] = [
+                'src' => $src,
+                'alt' => $asset->alt_text ?: $caption,
+                'caption' => $caption,
+            ];
+        }
+
+        $block['items'] = array_values(array_merge($mediaRows, $items));
+
+        return $block;
     }
 
     /**

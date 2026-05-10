@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin\Soc;
 
 use App\Models\NewsPost;
+use App\Models\School;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -41,11 +43,14 @@ class SocNewsAdminController extends BaseSocAdminController
             'seo_title' => ['nullable', 'string', 'max:192'],
             'seo_description' => ['nullable', 'string', 'max:512'],
             'published_at' => ['nullable', 'date'],
-            'featured_image_path' => ['nullable', 'string', 'max:512'],
+            'featured_image' => ['nullable', 'image', 'max:8192'],
         ]);
         $slug = $validated['slug'] ?? Str::slug($validated['title']);
         $slug = $this->uniqueSlug($soc->id, $slug);
-        $data = Arr::except($validated, ['slug']);
+        $data = Arr::except($validated, ['slug', 'featured_image']);
+        if ($request->hasFile('featured_image')) {
+            $data['featured_image_path'] = $request->file('featured_image')->store($soc->slug.'/'.$soc->id.'/news', 'public');
+        }
         NewsPost::query()->create([
             ...$data,
             'slug' => $slug,
@@ -76,14 +81,19 @@ class SocNewsAdminController extends BaseSocAdminController
             'seo_title' => ['nullable', 'string', 'max:192'],
             'seo_description' => ['nullable', 'string', 'max:512'],
             'published_at' => ['nullable', 'date'],
-            'featured_image_path' => ['nullable', 'string', 'max:512'],
+            'featured_image' => ['nullable', 'image', 'max:8192'],
         ]);
         if (! empty($validated['slug']) && $validated['slug'] !== $news->slug) {
             $validated['slug'] = $this->uniqueSlug($soc->id, $validated['slug'], $news->id);
         } else {
             unset($validated['slug']);
         }
-        $news->update($validated);
+        $data = Arr::except($validated, ['featured_image']);
+        if ($request->hasFile('featured_image')) {
+            $this->deleteStoredFeaturedImage($soc, $news->featured_image_path);
+            $data['featured_image_path'] = $request->file('featured_image')->store($soc->slug.'/'.$soc->id.'/news', 'public');
+        }
+        $news->update($data);
 
         return redirect()->route('admin.soc.news.index')->with('status', 'News post updated.');
     }
@@ -92,6 +102,7 @@ class SocNewsAdminController extends BaseSocAdminController
     {
         $soc = $this->socSchool($request);
         abort_unless((int) $news->school_id === (int) $soc->id, 404);
+        $this->deleteStoredFeaturedImage($soc, $news->featured_image_path);
         $news->delete();
 
         return redirect()->route('admin.soc.news.index')->with('status', 'News post deleted.');
@@ -111,5 +122,16 @@ class SocNewsAdminController extends BaseSocAdminController
         }
 
         return $slug;
+    }
+
+    private function deleteStoredFeaturedImage(School $school, ?string $path): void
+    {
+        if ($path === null || $path === '') {
+            return;
+        }
+        $prefix = $school->slug.'/'.$school->id.'/news/';
+        if (str_starts_with($path, $prefix)) {
+            Storage::disk('public')->delete($path);
+        }
     }
 }

@@ -9,7 +9,7 @@
         </header>
         @if($post->featured_image_path)
             <figure class="mt-10 overflow-hidden rounded-2xl border border-thc-navy/12">
-                <img src="{{ asset($post->featured_image_path) }}" alt="" class="w-full object-cover" loading="lazy">
+                <img src="{{ $post->featuredImagePublicUrl() }}" alt="" class="w-full object-cover" loading="lazy">
             </figure>
         @endif
         <div class="mt-10 space-y-4 text-base leading-relaxed text-thc-text [&_a]:font-medium [&_a]:text-thc-royal [&_h2]:mt-8 [&_h2]:font-serif [&_h2]:text-2xl [&_h2]:text-thc-navy [&_ul]:list-disc [&_ul]:pl-6">
